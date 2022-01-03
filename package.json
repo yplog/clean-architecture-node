@@ -1,0 +1,20 @@
+{
+  "name": "clean-architecture-node",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "Yalın Pala",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest",
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.17.2",
+    "lodash": "^4.17.21",
+    "uuid": "^8.3.2"
+  },
+  "devDependencies": {
+    "chance": "^1.1.8",
+    "jest": "^27.4.5"
+  }
+}
