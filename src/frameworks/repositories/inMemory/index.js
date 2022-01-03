@@ -1,5 +1,9 @@
-const userRepository = require('./usersRepository');
+const userRepository = require('./users.repository');
+const productRepository = require('./products.repository');
+const orderRepository = require('./orders.repository');
 
 module.exports = {
-    userRepository
+    userRepository,
+    productRepository,
+    orderRepository
 }
