@@ -1,6 +1,6 @@
 const Chance = require('chance');
 const { v4: uuidv4 } = require('uuid');
-const { user: { addUserUseCase } } = require('../../../src/useCases');
+const { user: { addUserUseCase, getUserByIdUseCase } } = require('../../../src/useCases');
 
 const { User, constants: { userConstants: { genders } } } = require('../../../src/entities');
 
@@ -12,6 +12,11 @@ describe('User use cases', () => {
     add: jest.fn(async (user) => ({
       ...user,
       id: uuidv4()
+    })),
+    getById: jest.fn(async (id) => ({
+      id,
+      username: chance.name(),
+      gender: genders.NOT_SPECIFIED
     }))
   }
 
@@ -37,6 +42,19 @@ describe('User use cases', () => {
       expect(call.username).toBe(testUserData.username);
       expect(call.gender).toBe(testUserData.gender);
     })
+  })
 
+  describe('Get user use case', () => {
+    test('User should be returned by id', async () => {
+      const fakeId = uuidv4();
+      const userById = await getUserByIdUseCase(dependencies).execute({ id: fakeId });
+
+      expect(userById).toBeDefined();
+      expect(userById.id).toBe(fakeId);
+      expect(userById.username).toBeDefined();
+
+      const expectedId = mockUserRepo.getById.mock.calls[0][0];
+      expect(expectedId).toBe(fakeId);
+    })
   })
 })
