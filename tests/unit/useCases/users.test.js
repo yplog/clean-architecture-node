@@ -2,7 +2,7 @@ const Chance = require('chance');
 const { v4: uuidv4 } = require('uuid');
 const { user: { addUserUseCase, getUserByIdUseCase, updateUserUseCase, deleteUserUseCase } } = require('../../../src/useCases');
 
-const { User, constants: { userConstants: { genders } } } = require('../../../src/entities');
+const { constants: { userConstants: { genders } } } = require('../../../src/entities');
 
 const chance = new Chance();
 
