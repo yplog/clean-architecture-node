@@ -1,11 +1,20 @@
 const Chance = require('chance');
 const { v4: uuidv4 } = require('uuid');
 const { Product } = require('../../../src/entities');
-const { product: { addProductUseCase, getProductByIdUseCase } } = require('../../../src/useCases');
+const { product: { addProductUseCase, getProductByIdUseCase, updateProductUseCase }, product} = require('../../../src/useCases');
+const {deleteProductUseCase} = require("../../../src/useCases/products");
 
 const chance = new Chance();
+const { cloneDeep } = require('lodash');
 
 describe('Products use cases', () => {
+
+  const testProduct = new Product({
+    name: chance.name(),
+    description: chance.sentence(),
+    images: [uuidv4(), uuidv4()],
+    price: chance.natural()
+  });
 
   const mockProductRepo = {
     add: jest.fn(async (product) => ({
@@ -17,7 +26,10 @@ describe('Products use cases', () => {
       name: chance.name(),
       description: chance.sentence(),
       images: [uuidv4(), uuidv4()],
-      price: chance.natural() })),
+      price: chance.natural()
+    })),
+    update: jest.fn(async (product) => product),
+    delete: jest.fn(async (product) => product)
   }
   const dependencies = {
     productsRepository: mockProductRepo
@@ -25,13 +37,6 @@ describe('Products use cases', () => {
 
   describe('Add product use case', () => {
     test('New product should be added', async () => {
-      const testProduct = new Product({
-        name: chance.name(),
-        description: chance.sentence(),
-        images: [uuidv4(), uuidv4()],
-        price: chance.natural()
-      });
-
       const savedProduct = await addProductUseCase(dependencies).execute(testProduct);
       expect(savedProduct).toBeDefined();
       expect(savedProduct.id).toBeDefined();
@@ -58,6 +63,37 @@ describe('Products use cases', () => {
 
       const expectedId = mockProductRepo.getById.mock.calls[0][0];
       expect(expectedId).toBe(fakeId)
+    });
+  });
+
+  describe('Update product use case', () => {
+    test('Product should be updated', async () => {
+      const mockProduct = {
+        ...testProduct,
+        id: uuidv4()
+      };
+
+      const updatedProduct = await updateProductUseCase(dependencies).execute({ product: cloneDeep(mockProduct) });
+      expect(updatedProduct).toEqual(mockProduct);
+
+      const expectedProduct = mockProductRepo.update.mock.calls[0][0];
+      expect(expectedProduct).toEqual(mockProduct);
+
+    });
+  });
+
+  describe('Delete product use case', () => {
+    test('Product should be deleted', async () => {
+      const mockProduct = {
+        ...testProduct,
+        id: uuidv4()
+      };
+
+      const deletedProduct = await deleteProductUseCase(dependencies).execute({ product: cloneDeep(mockProduct) });
+      expect(deletedProduct).toEqual(mockProduct);
+
+      const expectedProduct = mockProductRepo.delete.mock.calls[0][0];
+      expect(expectedProduct).toEqual(mockProduct);
     });
   });
 });
