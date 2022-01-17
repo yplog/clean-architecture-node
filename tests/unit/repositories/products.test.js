@@ -1,13 +1,18 @@
 const Chance = require('chance');
-const { productRepository } = require('../../../src/frameworks/repositories/inMemory');
-const { Product } = require('../../../src/entities');
-const { cloneDeep } = require("lodash");
+const {productRepository} = require('../../../src/frameworks/repositories/inMemory');
+const {Product} = require('../../../src/entities');
+const {cloneDeep} = require("lodash");
 
 const chance = new Chance();
 
 describe('Product repository', () => {
   test('New product should be added and returned', async () => {
-    const testProduct = new Product({ name: chance.name(), description: chance.sentence(), images: [chance.url, chance.url], price: chance.natural() });
+    const testProduct = new Product({
+      name: chance.name(),
+      description: chance.sentence(),
+      images: [chance.url, chance.url],
+      price: chance.natural()
+    });
 
     const addedProduct = await productRepository.add(testProduct);
 
@@ -23,10 +28,20 @@ describe('Product repository', () => {
   });
 
   test('New product should be deleted', async () => {
-    const willBeDeletedTestProduct = new Product({ name: chance.name(), description: chance.sentence(), images: [chance.url(), chance.url()], price: chance.natural() });
-    const testProduct = new Product({ name: chance.name(), description: chance.sentence(), images: [chance.url(), chance.url()], price: chance.natural() });
+    const willBeDeletedTestProduct = new Product({
+      name: chance.name(),
+      description: chance.sentence(),
+      images: [chance.url(), chance.url()],
+      price: chance.natural()
+    });
+    const testProduct = new Product({
+      name: chance.name(),
+      description: chance.sentence(),
+      images: [chance.url(), chance.url()],
+      price: chance.natural()
+    });
 
-    const [ willBeDeletedAddedTestProduct, addedTestProduct ] = await Promise.all([productRepository.add(willBeDeletedTestProduct), productRepository.add(testProduct)]);
+    const [willBeDeletedAddedTestProduct, addedTestProduct] = await Promise.all([productRepository.add(willBeDeletedTestProduct), productRepository.add(testProduct)]);
 
     expect(willBeDeletedAddedTestProduct).toBeDefined();
     expect(addedTestProduct).toBeDefined();
@@ -42,12 +57,17 @@ describe('Product repository', () => {
   });
 
   test('New product should be updated', async () => {
-    const testProduct = new Product({ name: chance.name(), description: chance.sentence(), images: [chance.url(), chance.url()], price: chance.natural() });
+    const testProduct = new Product({
+      name: chance.name(),
+      description: chance.sentence(),
+      images: [chance.url(), chance.url()],
+      price: chance.natural()
+    });
 
     const addedProduct = await productRepository.add(testProduct);
     expect(addedProduct).toBeDefined();
 
-    const clonedProduct = cloneDeep({...addedProduct, name: chance.name(), description: chance.sentence() });
+    const clonedProduct = cloneDeep({...addedProduct, name: chance.name(), description: chance.sentence()});
 
     const updatedProduct = await productRepository.update(clonedProduct);
     expect(updatedProduct).toEqual(clonedProduct);
