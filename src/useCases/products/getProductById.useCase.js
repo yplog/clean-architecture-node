@@ -1,14 +1,12 @@
-const { Product } = require('../../entities');
-
 module.exports = dependencies => {
-  const { productsRepository } = dependencies;
+  const { productRepository } = dependencies;
 
-  if (!productsRepository) {
+  if (!productRepository) {
     throw new Error('productRepository should be in dependencies');
   }
 
   const execute = ({ id }) => {
-    return productsRepository.getById(id);
+    return productRepository.getById(id);
   }
 
   return {

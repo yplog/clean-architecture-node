@@ -6,9 +6,10 @@ module.exports = (err, req, res, next) => {
     message: err.message || 'No Message',
     reason: err.reason || err.stack,
     url: req.originalUrl,
-    ip: req.ip
+    ip: req.ip,
+    validationErrors: err.validationErrors
   });
 
-  req.status(error.status);
+  res.status(error.status);
   res.json(new Response({ status: false, error }));
 }
