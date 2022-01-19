@@ -1,101 +1,103 @@
-const { v4: uuidv4 } = require('uuid');
 const Chance = require('chance');
-const { cloneDeep } = require('lodash');
+
 const {
-  order: {
-    addOrderUseCase,
-    getOrderByIdUseCase,
-    updateOrderUseCase,
-    deleteOrderUseCase
-  }
-} = require('../../../src/useCases');
+  orderRepository,
+} = require('../../../src/frameworks/repositories/inMemory');
+
+const {
+  Order
+} = require('../../../src/entities');
 
 const chance = new Chance();
 
-describe('Order use cases', () => {
+const {
+  cloneDeep
+} = require('lodash');
 
-  const testOrder = {
-    userId: uuidv4(),
-    productIds: [uuidv4(), uuidv4()],
-    date: chance.date(),
-    isPayed: false
-  };
+const {
+  v4: uuidv4
+} = require('uuid');
 
-  const mockOrderRepository = {
-    add: jest.fn( async (order) => ({
-      ...order,
-      id: uuidv4()
-    })),
-    getById: jest.fn(async (id) => ({
-      id,
+describe('Orders repository', () => {
+  test('New Order should be added and returned', async () => {
+    const testOrder = new Order({
       userId: uuidv4(),
       productIds: [uuidv4(), uuidv4()],
       date: chance.date(),
-      isPayed: false
-    })),
-    update: jest.fn(async (order) => order),
-    delete: jest.fn(async (order) => order)
-  };
-  const dependencies = { orderRepository: mockOrderRepository };
+      isPayed: true,
+      meta: {
+        comment: 'Deliver it to me as soon as possible'
+      }
+    })
 
-  describe('Add order use case', () => {
-    test('Order should be added', async () => {
-      const addedOrder = await addOrderUseCase(dependencies).execute(testOrder);
-      expect(addedOrder).toBeDefined();
-      expect(addedOrder.id).toBeDefined();
-      expect(addedOrder.userId).toBe(testOrder.userId);
-      expect(addedOrder.productIds).toEqual(testOrder.productIds);
-      expect(addedOrder.date).toEqual(testOrder.date);
-      expect(addedOrder.isPayed).toBe(testOrder.isPayed);
+    const addedOrder = await orderRepository.add(testOrder);
+    expect(addedOrder).toBeDefined();
+    expect(addedOrder.id).toBeDefined();
+    expect(addedOrder.userId).toBe(testOrder.userId);
+    expect(addedOrder.productIds).toEqual(testOrder.productIds);
+    expect(addedOrder.date).toEqual(testOrder.date);
+    expect(addedOrder.isPayed).toBe(testOrder.isPayed);
+    expect(addedOrder.meta).toEqual(testOrder.meta);
 
-      const expectedOrder = mockOrderRepository.add.mock.calls[0][0];
-      expect(expectedOrder).toEqual(testOrder);
-    });
-  });
+    const returnedOrder = await orderRepository.getById(addedOrder.id);
+    expect(returnedOrder).toEqual(addedOrder);
+  })
+  test('New Order should be deleted', async () => {
+    const willBeDeletedOrder = new Order({
+      userId: uuidv4(),
+      productIds: [uuidv4(), uuidv4()],
+      date: chance.date(),
+      isPayed: true,
+      meta: {
+        comment: 'Deliver it to me as soon as possible'
+      }
+    })
 
-  describe('Get by id order use case', () => {
-    test('Order should be returned by id', async () => {
-      const fakeId = uuidv4();
+    const shouldStayOrder = new Order({
+      userId: uuidv4(),
+      productIds: [uuidv4(), uuidv4()],
+      date: chance.date(),
+      isPayed: true,
+      meta: {
+        comment: 'Deliver it to me as soon as possible'
+      }
+    })
 
-      const returnedOrder = await getOrderByIdUseCase(dependencies).execute({id: fakeId});
-      expect(returnedOrder).toBeDefined();
-      expect(returnedOrder.userId).toBeDefined();
-      expect(returnedOrder.productIds).toBeDefined();
-      expect(returnedOrder.date).toBeDefined();
-      expect(returnedOrder.isPayed).toBeDefined();
+    const [willBeDeletedAddedOrder, shouldStayAddedOrder] = await Promise.all([orderRepository.add(willBeDeletedOrder), orderRepository.add(shouldStayOrder)])
+    expect(willBeDeletedAddedOrder).toBeDefined();
+    expect(shouldStayAddedOrder).toBeDefined();
 
-      const expectedId = mockOrderRepository.getById.mock.calls[0][0];
-      expect(expectedId).toBe(fakeId);
-    });
-  });
+    const deletedOrder = await orderRepository.delete(willBeDeletedAddedOrder);
+    expect(deletedOrder).toEqual(willBeDeletedAddedOrder);
 
-  describe('Update order use case',  () => {
-    test('Order should be updated', async () => {
-      const mockOrder = { ...testOrder, id: uuidv4() };
-      const updatedOrder = await updateOrderUseCase(dependencies).execute({
-        order: cloneDeep(mockOrder)
-      });
-      expect(updatedOrder).toEqual(mockOrder);
+    const shouldBeDeletedOrder = await orderRepository.getById(deletedOrder.id);
+    expect(shouldBeDeletedOrder).toBeUndefined()
 
-      const expectedOrder = mockOrderRepository.update.mock.calls[0][0];
-      expect(expectedOrder).toEqual(mockOrder);
-    });
-  });
+    const shouldBeDefinedOrder = await orderRepository.getById(shouldStayAddedOrder.id);
+    expect(shouldBeDefinedOrder).toBeDefined()
+  })
+  test('New Order should be updated', async () => {
+    const testOrder = new Order({
+      userId: uuidv4(),
+      productIds: [uuidv4(), uuidv4()],
+      date: chance.date(),
+      isPayed: true,
+      meta: {
+        comment: 'Deliver it to me as soon as possible'
+      }
+    })
 
-  describe('Delete order use case', () => {
-    test('Order should be deleted', async () => {
-      const mockOrder = {
-        ...testOrder,
-        id: uuidv4()
-      };
+    const addedOrder = await orderRepository.add(testOrder);
+    expect(addedOrder).toBeDefined();
 
-      const deletedOrder = await deleteOrderUseCase(dependencies).execute({
-        order: cloneDeep(mockOrder)
-      });
-      expect(deletedOrder).toEqual(mockOrder);
+    const clonedOrder = cloneDeep({
+      ...addedOrder,
+      isPayed: false,
+      productIds: [...testOrder.productIds, uuidv4()],
+    })
 
-      const expectedOrder = mockOrderRepository.delete.mock.calls[0][0];
-      expect(expectedOrder).toEqual(mockOrder);
-    });
-  });
-})
+    const updatedOrder = await orderRepository.update(clonedOrder);
+    expect(updatedOrder).toEqual(clonedOrder);
+  })
+
+});

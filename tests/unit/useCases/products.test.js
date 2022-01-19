@@ -1,7 +1,13 @@
 const Chance = require('chance');
 const { v4: uuidv4 } = require('uuid');
 const { Product } = require('../../../src/entities');
-const { product: { addProductUseCase, getProductByIdUseCase, updateProductUseCase }, product} = require('../../../src/useCases');
+const {
+  product: {
+    addProductUseCase,
+    getProductByIdUseCase,
+    updateProductUseCase
+  }
+} = require('../../../src/useCases');
 const {deleteProductUseCase} = require("../../../src/useCases/products");
 
 const chance = new Chance();
