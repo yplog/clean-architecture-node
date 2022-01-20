@@ -45,4 +45,4 @@ const repository = () => {
   }
 }
 
-module.exports = repository()
+module.exports = repository();
